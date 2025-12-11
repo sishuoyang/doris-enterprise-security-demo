@@ -1,0 +1,14 @@
+# Base DN structure for Sishuo Demo
+# Note: Base DN is created automatically by the container
+# This file creates the organizational units
+
+dn: ou=users,dc=sishuo,dc=demo
+objectClass: organizationalUnit
+ou: users
+description: User accounts
+
+dn: ou=groups,dc=sishuo,dc=demo
+objectClass: organizationalUnit
+ou: groups
+description: User groups
+

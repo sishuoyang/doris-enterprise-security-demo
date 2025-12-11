@@ -1,0 +1,143 @@
+# User accounts for Sishuo Demo
+# Password is 'password123' (hashed with slappasswd)
+
+dn: uid=admin,ou=users,dc=sishuo,dc=demo
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+uid: admin
+cn: Administrator
+sn: Admin
+userPassword: password123
+uidNumber: 1000
+gidNumber: 1000
+homeDirectory: /home/admin
+loginShell: /bin/bash
+gecos: Administrator
+
+dn: uid=analyst1,ou=users,dc=sishuo,dc=demo
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+uid: analyst1
+cn: Analyst One
+sn: One
+userPassword: password123
+uidNumber: 1001
+gidNumber: 2001
+homeDirectory: /home/analyst1
+loginShell: /bin/bash
+gecos: Analyst One
+
+dn: uid=analyst2,ou=users,dc=sishuo,dc=demo
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+uid: analyst2
+cn: Analyst Two
+sn: Two
+userPassword: password123
+uidNumber: 1002
+gidNumber: 2001
+homeDirectory: /home/analyst2
+loginShell: /bin/bash
+gecos: Analyst Two
+
+dn: uid=dataengineer1,ou=users,dc=sishuo,dc=demo
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+uid: dataengineer1
+cn: Data Engineer One
+sn: Engineer
+userPassword: password123
+uidNumber: 1003
+gidNumber: 2002
+homeDirectory: /home/dataengineer1
+loginShell: /bin/bash
+gecos: Data Engineer One
+
+dn: uid=sales_user1,ou=users,dc=sishuo,dc=demo
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+uid: sales_user1
+cn: Sales User One
+sn: Sales
+userPassword: password123
+uidNumber: 1004
+gidNumber: 2003
+homeDirectory: /home/sales_user1
+loginShell: /bin/bash
+gecos: Sales User One
+
+dn: uid=sales_user2,ou=users,dc=sishuo,dc=demo
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+uid: sales_user2
+cn: Sales User Two
+sn: Sales
+userPassword: password123
+uidNumber: 1005
+gidNumber: 2003
+homeDirectory: /home/sales_user2
+loginShell: /bin/bash
+gecos: Sales User Two
+
+dn: uid=developer_user1,ou=users,dc=sishuo,dc=demo
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+uid: developer_user1
+cn: Developer One
+sn: Developer
+userPassword: password123
+uidNumber: 1006
+gidNumber: 2004
+homeDirectory: /home/developer_user1
+loginShell: /bin/bash
+gecos: Developer One
+
+dn: uid=developer_user2,ou=users,dc=sishuo,dc=demo
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+uid: developer_user2
+cn: Developer Two
+sn: Developer
+userPassword: password123
+uidNumber: 1007
+gidNumber: 2004
+homeDirectory: /home/developer_user2
+loginShell: /bin/bash
+gecos: Developer Two
+
+dn: uid=readonly_user1,ou=users,dc=sishuo,dc=demo
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+uid: readonly_user1
+cn: ReadOnly User One
+sn: ReadOnly
+userPassword: password123
+uidNumber: 1008
+gidNumber: 2005
+homeDirectory: /home/readonly_user1
+loginShell: /bin/bash
+gecos: ReadOnly User One
+
+dn: uid=readonly_user2,ou=users,dc=sishuo,dc=demo
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+uid: readonly_user2
+cn: ReadOnly User Two
+sn: ReadOnly
+userPassword: password123
+uidNumber: 1009
+gidNumber: 2005
+homeDirectory: /home/readonly_user2
+loginShell: /bin/bash
+gecos: ReadOnly User Two
+

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<configuration>
+    <!-- Ranger Admin Service Configuration -->
+    <property>
+        <name>ranger.plugin.doris.service.name</name>
+        <value>doris_nbd</value>
+        <description>Name of the Ranger service for Doris</description>
+    </property>
+
+    <property>
+        <name>ranger.plugin.doris.policy.source.impl</name>
+        <value>org.apache.ranger.admin.client.RangerAdminRESTClient</value>
+        <description>Class to retrieve policies from the source</description>
+    </property>
+
+    <property>
+        <name>ranger.plugin.doris.policy.rest.url</name>
+        <value>http://ranger.nbd.demo:6080</value>
+        <description>URL to Ranger Admin</description>
+    </property>
+
+    <property>
+        <name>ranger.plugin.doris.policy.rest.ssl.config.file</name>
+        <value></value>
+        <description>Path to SSL configuration file for REST client</description>
+    </property>
+
+    <property>
+        <name>ranger.plugin.doris.policy.pollIntervalMs</name>
+        <value>30000</value>
+        <description>How often to poll for changes in policies?</description>
+    </property>
+
+    <property>
+        <name>ranger.plugin.doris.policy.cache.dir</name>
+        <value>/opt/apache-doris/fe/conf/ranger-policy-cache</value>
+        <description>Directory where policies are cached</description>
+    </property>
+
+    <property>
+        <name>ranger.plugin.doris.policy.rest.client.connection.timeoutMs</name>
+        <value>60000</value>
+        <description>Connection timeout for REST client</description>
+    </property>
+
+    <property>
+        <name>ranger.plugin.doris.policy.rest.client.read.timeoutMs</name>
+        <value>60000</value>
+        <description>Read timeout for REST client</description>
+    </property>
+
+    <!-- Kerberos Configuration for Ranger Plugin -->
+    <!-- Note: Disabled - Ranger Admin uses NONE authentication, so Kerberos is not needed for policy API calls -->
+    <!-- If Ranger Admin requires Kerberos authentication, uncomment these properties -->
+    <!--
+    <property>
+        <name>ranger.plugin.doris.policy.rest.client.kerberos.principal</name>
+        <value>doris/fe1.nbd.demo@SISHUO.DEMO</value>
+        <description>Kerberos principal for Ranger plugin</description>
+    </property>
+
+    <property>
+        <name>ranger.plugin.doris.policy.rest.client.kerberos.keytab</name>
+        <value>/etc/security/keytabs/doris-fe.keytab</value>
+        <description>Kerberos keytab for Ranger plugin</description>
+    </property>
+    -->
+
+
+    <!-- Audit Configuration -->
+    <property>
+        <name>ranger.plugin.doris.audit.enabled</name>
+        <value>true</value>
+        <description>Enable audit logging</description>
+    </property>
+
+    <property>
+        <name>ranger.plugin.doris.audit.log4j.enable</name>
+        <value>true</value>
+        <description>Enable Log4j audit appender</description>
+    </property>
+</configuration>
+

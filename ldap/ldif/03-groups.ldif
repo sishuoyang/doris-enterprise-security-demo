@@ -1,0 +1,71 @@
+# User groups for NBD Demo
+# Using groupOfNames as structural class with posixGroup as auxiliary
+
+dn: cn=admins,ou=groups,dc=sishuo,dc=demo
+objectClass: top
+objectClass: groupOfNames
+objectClass: posixGroup
+cn: admins
+gidNumber: 2000
+member: uid=admin,ou=users,dc=sishuo,dc=demo
+memberUid: admin
+description: Administrators group
+
+dn: cn=analysts,ou=groups,dc=sishuo,dc=demo
+objectClass: top
+objectClass: groupOfNames
+objectClass: posixGroup
+cn: analysts
+gidNumber: 2001
+member: uid=analyst1,ou=users,dc=sishuo,dc=demo
+member: uid=analyst2,ou=users,dc=sishuo,dc=demo
+memberUid: analyst1
+memberUid: analyst2
+description: Analysts group
+
+dn: cn=data_engineers,ou=groups,dc=sishuo,dc=demo
+objectClass: top
+objectClass: groupOfNames
+objectClass: posixGroup
+cn: data_engineers
+gidNumber: 2002
+member: uid=dataengineer1,ou=users,dc=sishuo,dc=demo
+memberUid: dataengineer1
+description: Data engineers group
+
+dn: cn=sales,ou=groups,dc=sishuo,dc=demo
+objectClass: top
+objectClass: groupOfNames
+objectClass: posixGroup
+cn: sales
+gidNumber: 2003
+member: uid=sales_user1,ou=users,dc=sishuo,dc=demo
+member: uid=sales_user2,ou=users,dc=sishuo,dc=demo
+memberUid: sales_user1
+memberUid: sales_user2
+description: Sales team group
+
+dn: cn=developers,ou=groups,dc=sishuo,dc=demo
+objectClass: top
+objectClass: groupOfNames
+objectClass: posixGroup
+cn: developers
+gidNumber: 2004
+member: uid=developer_user1,ou=users,dc=sishuo,dc=demo
+member: uid=developer_user2,ou=users,dc=sishuo,dc=demo
+memberUid: developer_user1
+memberUid: developer_user2
+description: Developers group
+
+dn: cn=readonly_users,ou=groups,dc=sishuo,dc=demo
+objectClass: top
+objectClass: groupOfNames
+objectClass: posixGroup
+cn: readonly_users
+gidNumber: 2005
+member: uid=readonly_user1,ou=users,dc=sishuo,dc=demo
+member: uid=readonly_user2,ou=users,dc=sishuo,dc=demo
+memberUid: readonly_user1
+memberUid: readonly_user2
+description: Read-only users group
+

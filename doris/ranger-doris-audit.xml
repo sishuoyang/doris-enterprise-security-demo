@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+    <!-- Audit Configuration for Doris Ranger Plugin -->
+    <!-- According to Doris documentation, this can be empty for basic setup -->
+</configuration>
+

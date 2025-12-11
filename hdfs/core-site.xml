@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+    <property>
+        <name>fs.defaultFS</name>
+        <value>hdfs://namenode.nbd.demo:9000</value>
+    </property>
+    <property>
+        <name>hadoop.tmp.dir</name>
+        <value>/tmp/hadoop</value>
+    </property>
+    <!-- Kerberos configuration -->
+    <property>
+        <name>hadoop.security.authentication</name>
+        <value>kerberos</value>
+    </property>
+    <property>
+        <name>hadoop.security.authorization</name>
+        <value>true</value>
+    </property>
+    <property>
+        <name>hadoop.rpc.protection</name>
+        <value>authentication,privacy</value>
+    </property>
+    <!-- Data transfer protection for secure DataNode -->
+    <property>
+        <name>dfs.data.transfer.protection</name>
+        <value>authentication</value>
+    </property>
+    <!-- SSL Configuration for HTTPS web UI -->
+    <property>
+        <name>hadoop.ssl.server.conf</name>
+        <value>ssl-server.xml</value>
+    </property>
+    <property>
+        <name>hadoop.ssl.client.conf</name>
+        <value>ssl-client.xml</value>
+    </property>
+</configuration>
+

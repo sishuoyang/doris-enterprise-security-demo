@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<configuration>
+    <!-- Database Configuration -->
+    <property>
+        <name>ranger.jpa.jdbc.url</name>
+        <value>jdbc:postgresql://postgres.nbd.demo:5432/ranger</value>
+        <description>JDBC connection URL for Ranger database</description>
+    </property>
+
+    <property>
+        <name>ranger.jpa.jdbc.user</name>
+        <value>ranger</value>
+        <description>Database user for Ranger</description>
+    </property>
+
+    <property>
+        <name>ranger.jpa.jdbc.password</name>
+        <value>ranger_password</value>
+        <description>Database password for Ranger</description>
+    </property>
+
+    <property>
+        <name>ranger.jpa.jdbc.driver</name>
+        <value>org.postgresql.Driver</value>
+        <description>JDBC driver class</description>
+    </property>
+
+    <property>
+        <name>ranger.jpa.jdbc.dialect</name>
+        <value>org.eclipse.persistence.platform.database.PostgreSQLPlatform</value>
+        <description>EclipseLink database platform dialect for PostgreSQL</description>
+    </property>
+
+    <!-- LDAP Configuration -->
+    <property>
+        <name>ranger.ldap.url</name>
+        <value>ldap://ldap.nbd.demo:389</value>
+        <description>LDAP server URL</description>
+    </property>
+
+    <property>
+        <name>ranger.ldap.user.dnpattern</name>
+        <value>uid={0},ou=users,dc=nbd,dc=demo</value>
+        <description>LDAP user DN pattern</description>
+    </property>
+
+    <property>
+        <name>ranger.ldap.group.searchbase</name>
+        <value>ou=groups,dc=nbd,dc=demo</value>
+        <description>LDAP group search base</description>
+    </property>
+
+    <property>
+        <name>ranger.ldap.group.searchfilter</name>
+        <value>(member=uid={0},ou=users,dc=nbd,dc=demo)</value>
+        <description>LDAP group search filter</description>
+    </property>
+
+    <property>
+        <name>ranger.ldap.group.roleattribute</name>
+        <value>cn</value>
+        <description>LDAP group role attribute</description>
+    </property>
+
+    <property>
+        <name>ranger.ldap.bind.dn</name>
+        <value>cn=admin,dc=nbd,dc=demo</value>
+        <description>LDAP bind DN for search</description>
+    </property>
+
+    <property>
+        <name>ranger.ldap.bind.password</name>
+        <value>admin123</value>
+        <description>LDAP bind password</description>
+    </property>
+
+    <!-- Kerberos Configuration -->
+    <property>
+        <name>ranger.kerberos.enabled</name>
+        <value>true</value>
+        <description>Enable Kerberos authentication</description>
+    </property>
+
+    <property>
+        <name>ranger.kerberos.principal</name>
+        <value>HTTP/ranger.nbd.demo@SISHUO.DEMO</value>
+        <description>Kerberos principal for Ranger Admin</description>
+    </property>
+
+    <property>
+        <name>ranger.kerberos.keytab</name>
+        <value>/etc/security/keytabs/HTTP.keytab</value>
+        <description>Kerberos keytab for Ranger Admin</description>
+    </property>
+
+    <!-- Audit Configuration -->
+    <property>
+        <name>ranger.audit.solr.urls</name>
+        <value>http://localhost:8983/solr/ranger_audits</value>
+        <description>Solr URLs for audit logs (optional, can use database instead)</description>
+    </property>
+
+    <property>
+        <name>ranger.audit.source.type</name>
+        <value>db</value>
+        <description>Audit source type: db or solr</description>
+    </property>
+
+    <!-- Service Configuration -->
+    <property>
+        <name>ranger.service.http.enabled</name>
+        <value>true</value>
+        <description>Enable HTTP service</description>
+    </property>
+
+    <property>
+        <name>ranger.service.http.port</name>
+        <value>6080</value>
+        <description>Ranger Admin HTTP port</description>
+    </property>
+
+    <property>
+        <name>ranger.service.https.port</name>
+        <value>6081</value>
+        <description>Ranger Admin HTTPS port</description>
+    </property>
+
+    <property>
+        <name>ranger.externalurl</name>
+        <value>http://ranger.nbd.demo:6080</value>
+        <description>External URL for Ranger Admin</description>
+    </property>
+
+    <property>
+        <name>ranger.scheduler.enabled</name>
+        <value>true</value>
+        <description>Enable scheduler</description>
+    </property>
+
+    <!-- Authentication Configuration -->
+    <property>
+        <name>ranger.authentication.method</name>
+        <value>NONE</value>
+        <description>Authentication method: NONE, LDAP, or ACTIVE_DIRECTORY</description>
+    </property>
+
+    <!-- Hostname Configuration -->
+    <property>
+        <name>ranger.service.host</name>
+        <value>ranger.nbd.demo</value>
+        <description>Ranger Admin hostname</description>
+    </property>
+
+    <!-- Cookie Configuration -->
+    <property>
+        <name>ranger.admin.cookie.name</name>
+        <value>RANGERADMINSESSIONID</value>
+        <description>Ranger Admin session cookie name</description>
+    </property>
+</configuration>
+

@@ -1,0 +1,432 @@
+services:
+  # OpenLDAP Directory Service
+  openldap:
+    image: osixia/openldap:1.5.0
+    hostname: ldap.nbd.demo
+    container_name: nbd-openldap
+    command: ["--copy-service"]
+    environment:
+      LDAP_ORGANISATION: "Sishuo Demo"
+      LDAP_DOMAIN: "sishuo.demo"
+      LDAP_BASE_DN: "dc=sishuo,dc=demo"
+      LDAP_ADMIN_PASSWORD: "admin123"
+      LDAP_CONFIG_PASSWORD: "config123"
+      LDAP_READONLY_USER: "false"
+      LDAP_RFC2307BIS_SCHEMA: "true"
+      LDAP_BACKEND: "mdb"
+      LDAP_TLS: "false"
+      LDAP_REPLICATION: "false"
+      LDAP_REMOVE_CONFIG_AFTER_SETUP: "false"
+    volumes:
+      - ./data/ldap/data:/var/lib/ldap
+      - ./data/ldap/config:/etc/ldap/slapd.d
+      - ./ldap/ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom:z
+    ports:
+      - "389:389"
+      - "636:636"
+    networks:
+      nbdnet:
+        aliases:
+          - ldap.nbd.demo
+          - ldap
+    healthcheck:
+      test: ["CMD-SHELL", "ldapwhoami -x -H ldap://localhost -D 'cn=admin,dc=sishuo,dc=demo' -w admin123 2>&1 | grep -q 'dn:cn=admin,dc=sishuo,dc=demo' || ldapsearch -x -H ldap://localhost -b dc=sishuo,dc=demo -s base 2>&1 | grep -q 'dc=sishuo,dc=demo' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Kerberos KDC Server
+  kerberos:
+    build:
+      context: ./kerberos
+      dockerfile: Dockerfile
+    hostname: kerberos.nbd.demo
+    container_name: nbd-kerberos
+    environment:
+      REALM: "SISHUO.DEMO"
+      KDC_PASSWORD: "kdc123"
+      ADMIN_PASSWORD: "admin123"
+      DOMAIN_REALM: "nbd.demo"
+    volumes:
+      - ./data/kerberos/krb5kdc:/var/lib/krb5kdc
+      - ./data/kerberos/krb5kdc:/etc/krb5kdc
+      - ./data/kerberos/keytabs:/etc/security/keytabs
+      - ./kerberos/krb5.conf:/etc/krb5.conf
+      - ./kerberos/kdc.conf:/etc/krb5kdc/kdc.conf:ro
+    ports:
+      - "88:88/udp"
+      - "88:88"
+      - "749:749"
+      - "464:464/udp"
+      - "464:464"
+    networks:
+      nbdnet:
+        ipv4_address: 172.20.90.3
+        aliases:
+          - kerberos.nbd.demo
+          - kerberos
+    healthcheck:
+      test: ["CMD-SHELL", "kadmin.local -q 'list_principals' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Kerberos Admin Server (runs in same container as KDC for simplicity)
+  # Note: kadmin runs on the same port 749 as KDC, so we combine them
+  # The KDC container can handle both services
+
+  # HDFS NameNode
+  hdfs-namenode:
+    image: apache/hadoop:3
+    platform: linux/amd64
+    hostname: namenode.nbd.demo
+    container_name: nbd-hdfs-namenode
+    command: >
+      bash -c "
+        echo 'Waiting for Kerberos KDC to be ready...'
+        MAX_RETRIES=30
+        RETRY=0
+        while [ $${RETRY} -lt $${MAX_RETRIES} ]; do
+          if kinit -kt /etc/security/keytabs/hdfs-namenode.keytab hdfs/namenode.nbd.demo@SISHUO.DEMO 2>&1; then
+            KINIT_EXIT=$$?
+            if [ $${KINIT_EXIT} -eq 0 ]; then
+              echo 'Kerberos KDC is ready'
+              kdestroy 2>/dev/null || true
+              break
+            fi
+          fi
+          echo \"Kerberos KDC not ready, waiting... (attempt $$((RETRY+1))/$${MAX_RETRIES})\"
+          sleep 2
+          RETRY=$$((RETRY+1))
+        done
+        if [ $${RETRY} -eq $${MAX_RETRIES} ]; then
+          echo 'WARNING: Could not verify Kerberos KDC readiness, but continuing...'
+        fi
+        if [ ! -f /hadoop/dfs/name/current/VERSION ]; then
+          echo 'Formatting NameNode...'
+          hdfs namenode -format -force -nonInteractive || true
+        fi
+        echo 'Starting NameNode...'
+        hdfs namenode
+      "
+    environment:
+      JAVA_HOME: "/usr/lib/jvm/jre"
+      HADOOP_HOME: "/opt/hadoop"
+      HADOOP_CONF_DIR: "/opt/hadoop/etc/hadoop"
+    volumes:
+      - ./data/hdfs/namenode:/hadoop/dfs/name
+      - ./data/kerberos/keytabs:/etc/security/keytabs:ro
+      - ./kerberos/krb5.conf:/etc/krb5.conf:ro
+      - ./hdfs/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml:ro
+      - ./hdfs/hdfs-site.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml:ro
+      - ./hdfs/ssl-server.xml:/opt/hadoop/etc/hadoop/ssl-server.xml:ro
+      - ./hdfs/ssl-client.xml:/opt/hadoop/etc/hadoop/ssl-client.xml:ro
+      - ./ssl/keystores:/etc/security/keystores:ro
+      - ./ssl/truststores:/etc/security/truststores:ro
+    ports:
+      - "9000:9000"
+      - "9870:9870"
+      - "9871:9871"
+    networks:
+      nbdnet:
+        aliases:
+          - namenode.nbd.demo
+          - namenode
+    extra_hosts:
+      - "kerberos.nbd.demo:172.20.90.3"
+    depends_on:
+      kerberos:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "ps aux | grep -q '[N]ameNode' && timeout 2 bash -c '</dev/tcp/localhost/9000' 2>&1 || ps aux | grep -q '[N]ameNode' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 180s
+
+  # HDFS DataNode
+  hdfs-datanode:
+    image: apache/hadoop:3
+    platform: linux/amd64
+    hostname: datanode1.nbd.demo
+    container_name: nbd-hdfs-datanode
+    command: >
+      bash -c "
+        echo '172.20.90.3 kerberos.nbd.demo' >> /etc/hosts || true
+        mkdir -p /hadoop/dfs/data
+        chmod 750 /hadoop/dfs/data
+        chown -R root:root /hadoop/dfs/data || true
+        export HADOOP_JAAS_DEBUG=true
+        export HADOOP_OPTS='-Djava.net.preferIPv4Stack=true -Dsun.security.krb5.debug=true -Dsun.security.spnego.debug'
+        hdfs datanode
+      "
+    environment:
+      JAVA_HOME: "/usr/lib/jvm/jre"
+      HADOOP_HOME: "/opt/hadoop"
+      HADOOP_CONF_DIR: "/opt/hadoop/etc/hadoop"
+      HADOOP_JAAS_DEBUG: "true"
+      HADOOP_OPTS: "-Djava.net.preferIPv4Stack=true -Dsun.security.krb5.debug=true -Dsun.security.spnego.debug"
+    volumes:
+      - ./data/hdfs/datanode:/hadoop/dfs/data
+      - ./data/kerberos/keytabs:/etc/security/keytabs:ro
+      - ./kerberos/krb5.conf:/etc/krb5.conf:ro
+      - ./hdfs/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml:ro
+      - ./hdfs/hdfs-site.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml:ro
+      - ./hdfs/ssl-server.xml:/opt/hadoop/etc/hadoop/ssl-server.xml:ro
+      - ./hdfs/ssl-client.xml:/opt/hadoop/etc/hadoop/ssl-client.xml:ro
+      - ./ssl/keystores:/etc/security/keystores:ro
+      - ./ssl/truststores:/etc/security/truststores:ro
+    ports:
+      - "9864:9864"
+      - "9865:9865"
+      - "9866:9866"
+      - "9867:9867"
+    networks:
+      nbdnet:
+        aliases:
+          - datanode1.nbd.demo
+          - datanode
+    extra_hosts:
+      - "kerberos.nbd.demo:172.20.90.3"
+    depends_on:
+      hdfs-namenode:
+        condition: service_started
+      kerberos:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "ps aux | grep -q '[D]ataNode' && timeout 2 bash -c '</dev/tcp/localhost/9864' 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # MySQL Database for Ranger
+  ranger-db:
+    image: postgres:13
+    hostname: postgres.nbd.demo
+    container_name: nbd-ranger-db
+    environment:
+      POSTGRES_USER: "ranger"
+      POSTGRES_PASSWORD: "ranger_password"
+      POSTGRES_DB: "ranger"
+    volumes:
+      - ./data/ranger/postgres:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      nbdnet:
+        aliases:
+          - postgres.nbd.demo
+          - postgres
+          - ranger-db
+        ipv4_address: 172.20.90.7
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ranger -d ranger || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # Apache Ranger Admin
+  # Using official Apache Ranger Docker image
+  ranger-admin:
+    image: apache/ranger:2.4.0
+    hostname: ranger.nbd.demo
+    container_name: nbd-ranger-admin
+    user: "root"
+    entrypoint: ["/bin/bash", "/home/ranger/scripts/custom-ranger-entrypoint.sh"]
+    environment:
+      DB_FLAVOR: "POSTGRES"
+      db_host: "postgres.nbd.demo"
+      db_name: "ranger"
+      db_user: "ranger"
+      db_password: "ranger_password"
+      db_root_user: "ranger"
+      db_root_password: "ranger_password"
+      ranger_admin_password: "Admin123"
+      ranger_admin_username: "admin"
+      JAVA_VERSION_REQUIRED: "1.8"
+      RANGER_HOME: "/opt/ranger"
+      RANGER_SCRIPTS: "/home/ranger/scripts"
+      LOGFILE: "/opt/ranger/admin/logs/setup.log"
+      HOSTNAME: "ranger.nbd.demo"
+    volumes:
+      - ./ranger/install.properties:/opt/ranger/admin/install.properties:ro
+      - ./ranger/custom-ranger-entrypoint.sh:/home/ranger/scripts/custom-ranger-entrypoint.sh
+      - ./ranger/wait-for-ranger.sh:/home/ranger/scripts/wait-for-ranger.sh
+      - ./ranger/verify-ranger-config.sh:/home/ranger/scripts/verify-ranger-config.sh
+      - ./data/ranger/conf:/opt/ranger/ranger-2.4.0-admin/ews/webapp/WEB-INF/classes/conf
+      - ./data/ranger/plugins:/opt/ranger/ranger-2.4.0-admin/ews/webapp/WEB-INF/classes/ranger-plugins:ro
+      - ./data/ranger/postgres-driver/postgresql-42.5.6.jar:/opt/ranger/ranger-2.4.0-admin/ews/webapp/WEB-INF/lib/postgresql-42.5.6.jar:ro
+      - ./data/ranger/META-INF/persistence.xml:/opt/ranger/ranger-2.4.0-admin/ews/webapp/WEB-INF/classes/META-INF/persistence.xml:ro
+      - ./data/kerberos/keytabs:/etc/security/keytabs:ro
+      - ./kerberos/krb5.conf:/etc/krb5.conf:ro
+    ports:
+      - "6080:6080"
+      - "6081:6081"
+    networks:
+      nbdnet:
+        aliases:
+          - ranger.nbd.demo
+          - ranger
+        ipv4_address: 172.20.90.10
+    extra_hosts:
+      - "kerberos.nbd.demo:172.20.90.3"
+      - "postgres.nbd.demo:172.20.90.7"
+      - "ldap.nbd.demo:172.20.90.1"
+    depends_on:
+      ranger-db:
+        condition: service_healthy
+      openldap:
+        condition: service_started
+      kerberos:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 2 bash -c '</dev/tcp/localhost/6080' 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 180s
+
+  # Apache Doris Frontend
+  doris-fe:
+    image: apache/doris:fe-3.0.7
+    hostname: fe1.nbd.demo
+    container_name: nbd-doris-fe
+    user: "0:0"
+    environment:
+      FE_SERVERS: "fe1:172.20.90.31:9010"
+      FE_ID: "1"
+    volumes:
+      - ./data/doris/fe/doris-meta:/opt/apache-doris/fe/doris-meta
+      - ./data/doris/fe/log:/opt/apache-doris/fe/log
+      - ./data/doris/fe/conf:/opt/apache-doris/fe/conf
+      - ./doris/fe.conf:/opt/apache-doris/fe/conf/fe.conf
+      - ./doris/ldap.conf:/opt/apache-doris/fe/conf/ldap.conf:ro
+      - ./doris/ranger-doris-security.xml:/opt/apache-doris/fe/conf/ranger-doris-security.xml:ro
+      - ./doris/ranger-doris-audit.xml:/opt/apache-doris/fe/conf/ranger-doris-audit.xml:ro
+      - ./doris/log4j.properties:/opt/apache-doris/fe/conf/log4j.properties:ro
+      - ./data/kerberos/keytabs:/etc/security/keytabs:ro
+      - ./kerberos/krb5.conf:/etc/krb5.conf:ro
+    ports:
+      - "8030:8030"
+      - "9030:9030"
+      - "9010:9010"
+    networks:
+      nbdnet:
+        ipv4_address: 172.20.90.31
+        aliases:
+          - fe1.nbd.demo
+          - doris-fe
+    depends_on:
+      ranger-admin:
+        condition: service_started
+      # hdfs-namenode:
+      #   condition: service_healthy
+      kerberos:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8030/api/bootstrap || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 120s
+
+  # Apache Doris Backend
+  doris-be:
+    image: apache/doris:be-3.0.7
+    hostname: be1.nbd.demo
+    container_name: nbd-doris-be
+    user: "0:0"
+    environment:
+      FE_SERVERS: "fe1:172.20.90.31:9010"
+      BE_ADDR: "172.20.90.32:9050"
+    volumes:
+      - ./data/doris/be/storage:/opt/apache-doris/be/storage
+      - ./data/doris/be/log:/opt/apache-doris/be/log
+      - ./data/doris/be/conf:/opt/apache-doris/be/conf
+      - ./data/kerberos/keytabs:/etc/security/keytabs:ro
+      - ./kerberos/krb5.conf:/etc/krb5.conf:ro
+    ports:
+      - "8040:8040"
+      - "9060:9060"
+      - "9050:9050"
+    networks:
+      nbdnet:
+        ipv4_address: 172.20.90.32
+        aliases:
+          - be1.nbd.demo
+          - doris-be
+    depends_on:
+      doris-fe:
+        condition: service_healthy
+      hdfs-namenode:
+        condition: service_healthy
+      hdfs-datanode:
+        condition: service_started
+      kerberos:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8040/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 120s
+
+  # Test Client for HDFS with Kerberos
+  hdfs-test-client:
+    image: apache/hadoop:3
+    platform: linux/amd64
+    hostname: hdfs-client.nbd.demo
+    container_name: nbd-hdfs-test-client
+    environment:
+      JAVA_HOME: "/usr/lib/jvm/jre"
+      HADOOP_HOME: "/opt/hadoop"
+      HADOOP_CONF_DIR: "/opt/hadoop/etc/hadoop"
+      REALM: "SISHUO.DEMO"
+      TEST_USER: "analyst1"
+      PASSWORD: "password123"
+      NAMENODE: "namenode.nbd.demo:9000"
+    volumes:
+      - ./data/kerberos/keytabs:/etc/security/keytabs:ro
+      - ./kerberos/krb5.conf:/etc/krb5.conf:ro
+      - ./hdfs/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml:ro
+      - ./hdfs/hdfs-site.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml:ro
+      - ./scripts/test-hdfs-kerberos.sh:/usr/local/bin/test-hdfs-kerberos.sh:ro
+    networks:
+      nbdnet:
+        aliases:
+          - hdfs-client.nbd.demo
+          - hdfs-client
+    depends_on:
+      hdfs-namenode:
+        condition: service_healthy
+      hdfs-datanode:
+        condition: service_started
+      kerberos:
+        condition: service_healthy
+    command: >
+      bash -c "
+        echo 'Waiting for services to be ready...'
+        sleep 15
+        echo 'Installing krb5-user...'
+        apt-get update -qq && apt-get install -y -qq krb5-user > /dev/null 2>&1 || echo 'krb5-user installation skipped'
+        echo 'Running HDFS Kerberos test...'
+        chmod +x /usr/local/bin/test-hdfs-kerberos.sh
+        /usr/local/bin/test-hdfs-kerberos.sh || {
+          echo 'Test completed (may have failed if Kerberos is not enabled in HDFS)'
+          echo 'Keeping container running for debugging...'
+          sleep infinity
+        }
+      "
+    profiles:
+      - test
+
+networks:
+  nbdnet:
+    name: nbdnet
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.90.0/24

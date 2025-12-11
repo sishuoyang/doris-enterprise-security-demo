@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<configuration>
+    <!-- Ranger Admin Configuration -->
+    <property>
+        <name>ranger.usersync.policymgr.url</name>
+        <value>http://ranger.nbd.demo:6080</value>
+        <description>Ranger Admin URL for policy manager</description>
+    </property>
+
+    <property>
+        <name>ranger.usersync.policymgr.username</name>
+        <value>admin</value>
+        <description>Ranger Admin username</description>
+    </property>
+
+    <property>
+        <name>ranger.usersync.policymgr.password</name>
+        <value>Admin123</value>
+        <description>Ranger Admin password</description>
+    </property>
+
+    <!-- Sync Source Configuration -->
+    <property>
+        <name>ranger.usersync.sync.source</name>
+        <value>ldap</value>
+        <description>Sync source: ldap, unix, or file</description>
+    </property>
+
+    <!-- LDAP Configuration -->
+    <property>
+        <name>ranger.usersync.ldap.url</name>
+        <value>ldap://ldap.nbd.demo:389</value>
+        <description>LDAP server URL</description>
+    </property>
+
+    <property>
+        <name>ranger.usersync.ldap.binddn</name>
+        <value>cn=admin,dc=sishuo,dc=demo</value>
+        <description>LDAP bind DN for user sync</description>
+    </property>
+
+    <property>
+        <name>ranger.usersync.ldap.bindpassword</name>
+        <value>admin123</value>
+        <description>LDAP bind password</description>
+    </property>
+
+    <property>
+        <name>ranger.usersync.ldap.searchBase</name>
+        <value>ou=users,dc=sishuo,dc=demo</value>
+        <description>LDAP user search base</description>
+    </property>
+
+    <property>
+        <name>ranger.usersync.ldap.userSearchFilter</name>
+        <value>(objectClass=inetOrgPerson)</value>
+        <description>LDAP user search filter</description>
+    </property>
+
+    <property>
+        <name>ranger.usersync.ldap.userNameAttribute</name>
+        <value>uid</value>
+        <description>LDAP attribute for username</description>
+    </property>
+
+    <property>
+        <name>ranger.usersync.ldap.userObjectClass</name>
+        <value>inetOrgPerson</value>
+        <description>LDAP object class for users</description>
+    </property>
+
+    <!-- Group Sync Configuration -->
+    <property>
+        <name>ranger.usersync.group.searchenabled</name>
+        <value>true</value>
+        <description>Enable group synchronization</description>
+    </property>
+
+    <property>
+        <name>ranger.usersync.group.searchBase</name>
+        <value>ou=groups,dc=sishuo,dc=demo</value>
+        <description>LDAP group search base</description>
+    </property>
+
+    <property>
+        <name>ranger.usersync.group.searchFilter</name>
+        <value>(objectClass=groupOfNames)</value>
+        <description>LDAP group search filter</description>
+    </property>
+
+    <property>
+        <name>ranger.usersync.group.nameAttribute</name>
+        <value>cn</value>
+        <description>LDAP attribute for group name</description>
+    </property>
+
+    <property>
+        <name>ranger.usersync.group.memberAttribute</name>
+        <value>member</value>
+        <description>LDAP attribute for group members</description>
+    </property>
+
+    <property>
+        <name>ranger.usersync.group.userMemberAttribute</name>
+        <value>member</value>
+        <description>LDAP attribute linking users to groups</description>
+    </property>
+
+    <property>
+        <name>ranger.usersync.group.objectClass</name>
+        <value>groupOfNames</value>
+        <description>LDAP object class for groups</description>
+    </property>
+
+    <!-- Sync Interval Configuration -->
+    <property>
+        <name>ranger.usersync.sleeptimeinmillisbetweensynccycle</name>
+        <value>3600000</value>
+        <description>Sleep time between sync cycles in milliseconds (1 hour)</description>
+    </property>
+
+    <property>
+        <name>ranger.usersync.sync.interval</name>
+        <value>3600</value>
+        <description>Sync interval in seconds (1 hour)</description>
+    </property>
+
+    <!-- Database Configuration (for storing synced users/groups) -->
+    <property>
+        <name>ranger.jpa.jdbc.url</name>
+        <value>jdbc:postgresql://postgres.nbd.demo:5432/ranger</value>
+        <description>JDBC connection URL for Ranger database</description>
+    </property>
+
+    <property>
+        <name>ranger.jpa.jdbc.user</name>
+        <value>ranger</value>
+        <description>Database user for Ranger</description>
+    </property>
+
+    <property>
+        <name>ranger.jpa.jdbc.password</name>
+        <value>ranger_password</value>
+        <description>Database password for Ranger</description>
+    </property>
+
+    <property>
+        <name>ranger.jpa.jdbc.driver</name>
+        <value>org.postgresql.Driver</value>
+        <description>JDBC driver class</description>
+    </property>
+</configuration>
+
