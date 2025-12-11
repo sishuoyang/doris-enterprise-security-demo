@@ -25,7 +25,7 @@ Before starting the demo stack, ensure you have:
 
 1. **Start all services**:
    ```bash
-   cd NBD
+   cd doris-enterprise-security-demo
    ./start.sh
    ```
 
